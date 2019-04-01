@@ -28,6 +28,10 @@ MainWindow::MainWindow(wxFrame *frame)
 	Nbox->Set(*choices);
 	solvebutton = new wxButton(this, 1000, "Solve", wxPoint(770, 100), wxSize(100, 100));
 	solvebutton = new wxButton(this, 1001, "Random", wxPoint(770, 250), wxSize(100, 100));
+	timelabel = new wxStaticText(this, wxID_ANY, "Searching time: ", wxPoint(770, 400));
+	timelabel->SetFont(wxFont(15, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+	timelabel->SetBackgroundColour(*wxBLACK);
+	timelabel->SetForegroundColour(*wxWHITE);
 	RandomQueen();
 }
 
@@ -38,6 +42,7 @@ MainWindow::~MainWindow()
 	delete Nbox;
 	delete solvebutton;
 	delete randombutton;
+	delete timelabel;
 }
 
 void MainWindow::RenderFrame(wxPaintEvent & evt)
@@ -57,8 +62,8 @@ void MainWindow::RenderFrame(wxPaintEvent & evt)
 		}
 		black = temp ? 0 : 1;
 	}
-	pdc.SetBrush(*wxGREY_BRUSH);
-	pdc.SetPen(*wxGREY_PEN);
+	pdc.SetBrush(*wxBLACK_BRUSH);
+	pdc.SetPen(*wxBLACK_PEN);
 	pdc.DrawRectangle(wxPoint(720, 0), wxSize(1000, 1000));
 	pdc.DrawRectangle(wxPoint(0, 720), wxSize(1000, 1000));
 	DrawQueen(pdc);
@@ -76,6 +81,7 @@ void MainWindow::DrawQueen(wxAutoBufferedPaintDC & pdc)
 
 void MainWindow::RandomQueen()
 {
+	timelabel->SetLabel("Searching time: ");
 	init.hn = init.fn = init.step = 0;
 	init.solution = std::queue<pii>();
 	init.ld.clear();
@@ -156,7 +162,11 @@ void MainWindow::RandomClick(wxCommandEvent & evt)
 
 void MainWindow::SolveClick(wxCommandEvent & evt)
 {
+	auto start = std::chrono::high_resolution_clock::now();
 	State goal = AStar(init);
+	auto stop = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+	timelabel->SetLabel("Searching time: " + std::to_string(duration.count()/1000000.0) + " seconds");
 	while (!goal.solution.empty()) {
 		pii temp = goal.solution.front();
 		goal.solution.pop();

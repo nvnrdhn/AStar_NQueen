@@ -23,6 +23,7 @@ private:
 	wxArrayString *choices;
 	wxButton *solvebutton;
 	wxButton *randombutton;
+	wxStaticText *timelabel;
 	DECLARE_EVENT_TABLE()
 };
 
