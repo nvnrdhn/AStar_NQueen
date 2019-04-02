@@ -24,6 +24,7 @@ private:
 	wxButton *solvebutton;
 	wxButton *randombutton;
 	wxStaticText *timelabel;
+	wxStaticText *heurlabel;
 	DECLARE_EVENT_TABLE()
 };
 

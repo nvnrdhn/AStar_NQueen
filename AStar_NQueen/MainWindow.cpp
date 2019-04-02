@@ -32,6 +32,10 @@ MainWindow::MainWindow(wxFrame *frame)
 	timelabel->SetFont(wxFont(15, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
 	timelabel->SetBackgroundColour(*wxBLACK);
 	timelabel->SetForegroundColour(*wxWHITE);
+	heurlabel = new wxStaticText(this, wxID_ANY, "Heuristic value: ", wxPoint(770, 450));
+	heurlabel->SetFont(wxFont(15, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+	heurlabel->SetBackgroundColour(*wxBLACK);
+	heurlabel->SetForegroundColour(*wxWHITE);
 	RandomQueen();
 }
 
@@ -85,8 +89,6 @@ void MainWindow::RandomQueen()
 	init.hn = init.fn = init.step = 0;
 	init.solution = std::queue<pii>();
 	init.ld.clear();
-	init.row.clear();
-	init.row.resize(N, 0);
 	init.col.clear();
 	init.col.resize(N, 0);
 	init.rd.clear();
@@ -95,15 +97,14 @@ void MainWindow::RandomQueen()
 	for (int i = 0; i < N; i++) {
 		Queen q = Queen(rand() % N, i);
 		init.queens.push_back(q);
-		init.hn += init.row[q.y];
 		init.hn += init.col[q.x];
 		init.hn += init.ld[q.x - q.y];
 		init.hn += init.rd[q.x + q.y];
-		init.row[q.y]++;
 		init.col[q.x]++;
 		init.ld[q.x - q.y]++;
 		init.rd[q.x + q.y]++;
 	}
+	heurlabel->SetLabel("Heuristic value: " + std::to_string(init.hn));
 }
 
 State MainWindow::AStar(State init)
@@ -122,24 +123,20 @@ State MainWindow::AStar(State init)
 
 					next.solution.push(pii(i, j));
 
-					next.hn -= (next.row[next.queens[i].y] ? next.row[next.queens[i].y] - 1 : 0);
-					next.hn -= (next.col[next.queens[i].x] ? next.col[next.queens[i].x] - 1 : 0);
-					next.hn -= (next.ld[next.queens[i].x - next.queens[i].y] ? next.ld[next.queens[i].x - next.queens[i].y] - 1 : 0);
-					next.hn -= (next.rd[next.queens[i].x + next.queens[i].y] ? next.rd[next.queens[i].x + next.queens[i].y] - 1 : 0);
-
-					next.row[next.queens[i].y]--;
 					next.col[next.queens[i].x]--;
 					next.ld[next.queens[i].x - next.queens[i].y]--;
 					next.rd[next.queens[i].x + next.queens[i].y]--;
 
+					next.hn -= next.col[next.queens[i].x];
+					next.hn -= next.ld[next.queens[i].x - next.queens[i].y];
+					next.hn -= next.rd[next.queens[i].x + next.queens[i].y];
+
 					next.queens[i].x = j;
 
-					next.hn += next.row[next.queens[i].y];
 					next.hn += next.col[next.queens[i].x];
 					next.hn += next.ld[next.queens[i].x - next.queens[i].y];
 					next.hn += next.rd[next.queens[i].x + next.queens[i].y];
 
-					next.row[next.queens[i].y]++;
 					next.col[next.queens[i].x]++;
 					next.ld[next.queens[i].x - next.queens[i].y]++;
 					next.rd[next.queens[i].x + next.queens[i].y]++;
@@ -170,7 +167,27 @@ void MainWindow::SolveClick(wxCommandEvent & evt)
 	while (!goal.solution.empty()) {
 		pii temp = goal.solution.front();
 		goal.solution.pop();
+
+		init.col[init.queens[temp.first].x]--;
+		init.ld[init.queens[temp.first].x - init.queens[temp.first].y]--;
+		init.rd[init.queens[temp.first].x + init.queens[temp.first].y]--;
+
+		init.hn -= init.col[init.queens[temp.first].x];
+		init.hn -= init.ld[init.queens[temp.first].x - init.queens[temp.first].y];
+		init.hn -= init.rd[init.queens[temp.first].x + init.queens[temp.first].y];
+
 		init.queens[temp.first].x = temp.second;
+
+		init.hn += init.col[init.queens[temp.first].x];
+		init.hn += init.ld[init.queens[temp.first].x - init.queens[temp.first].y];
+		init.hn += init.rd[init.queens[temp.first].x + init.queens[temp.first].y];
+
+		init.col[init.queens[temp.first].x]++;
+		init.ld[init.queens[temp.first].x - init.queens[temp.first].y]++;
+		init.rd[init.queens[temp.first].x + init.queens[temp.first].y]++;
+
+		heurlabel->SetLabel("Heuristic value: " + std::to_string(init.hn));
+
 		Refresh();
 		Update();
 		Sleep(1000);

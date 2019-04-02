@@ -12,7 +12,7 @@ public:
 	~State();
 	std::vector<Queen> queens;
 	int hn = 0, step = 0, fn = 0;
-	std::vector<int> row, col, rd;
+	std::vector<int> col, rd;
 	std::map<int, int> ld;
 	std::queue<pii> solution;
 	friend bool operator > (const State& l, const State& r) {
